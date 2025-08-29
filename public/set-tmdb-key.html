@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Set TMDb API Key - WatchNow Media</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        .container {
+            background: #1e293b;
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid #334155;
+        }
+        h1 {
+            color: #f1f5f9;
+            margin-bottom: 20px;
+        }
+        p {
+            line-height: 1.6;
+            margin-bottom: 20px;
+            color: #cbd5e1;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #f1f5f9;
+            font-weight: 500;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #475569;
+            border-radius: 6px;
+            background: #0f172a;
+            color: #e2e8f0;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        button.secondary {
+            background: #6b7280;
+        }
+        button.secondary:hover {
+            background: #4b5563;
+        }
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 6px;
+            display: none;
+        }
+        .status.success {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #22c55e;
+        }
+        .status.error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+        .current-key {
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #475569;
+            margin-bottom: 20px;
+        }
+        .key-display {
+            font-family: monospace;
+            color: #94a3b8;
+            word-break: break-all;
+        }
+        .help-link {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+        .help-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Set TMDb API Key</h1>
+        <p>
+            This page allows you to set your TMDb API key for the WatchNow Media application. 
+            The key will be stored locally in your browser and used for making API requests to TMDb.
+        </p>
+        
+        <div class="current-key">
+            <strong>Current API Key Status:</strong><br>
+            <span id="current-status" class="key-display">Checking...</span>
+        </div>
+
+        <form id="api-key-form">
+            <div class="form-group">
+                <label for="api-key">TMDb API Key:</label>
+                <input 
+                    type="text" 
+                    id="api-key" 
+                    name="api-key" 
+                    placeholder="Enter your TMDb API key here..."
+                    autocomplete="off"
+                >
+            </div>
+            
+            <button type="submit">Save API Key</button>
+            <button type="button" id="clear-btn" class="secondary">Clear Key</button>
+            
+            <div id="status" class="status"></div>
+        </form>
+
+        <p style="margin-top: 30px; font-size: 14px;">
+            <strong>Need a TMDb API Key?</strong><br>
+            Visit the <a href="https://www.themoviedb.org/settings/api" target="_blank" class="help-link">TMDb API Settings page</a> 
+            to request a free API key. You'll need to create an account and provide some basic information about your application.
+        </p>
+        
+        <p style="font-size: 14px;">
+            <strong>Note:</strong> Your API key is stored only in your browser's local storage and is never sent to our servers.
+        </p>
+    </div>
+
+    <script>
+        const API_KEY_NAMES = ['VITE_TMDB_API_KEY', 'REACT_APP_TMDB_API_KEY', 'tmdb_api_key'];
+        
+        // Get current API key from localStorage
+        function getCurrentApiKey() {
+            for (const keyName of API_KEY_NAMES) {
+                const key = localStorage.getItem(keyName);
+                if (key) {
+                    return { name: keyName, key: key };
+                }
+            }
+            return null;
+        }
+        
+        // Set API key in localStorage
+        function setApiKey(key) {
+            // Store under all common environment variable names for maximum compatibility
+            API_KEY_NAMES.forEach(keyName => {
+                localStorage.setItem(keyName, key);
+            });
+        }
+        
+        // Clear API key from localStorage
+        function clearApiKey() {
+            API_KEY_NAMES.forEach(keyName => {
+                localStorage.removeItem(keyName);
+            });
+        }
+        
+        // Show status message
+        function showStatus(message, isError = false) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${isError ? 'error' : 'success'}`;
+            statusEl.style.display = 'block';
+            
+            // Hide status after 5 seconds
+            setTimeout(() => {
+                statusEl.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Update current key display
+        function updateCurrentKeyDisplay() {
+            const currentKey = getCurrentApiKey();
+            const statusEl = document.getElementById('current-status');
+            
+            if (currentKey) {
+                const maskedKey = currentKey.key.slice(0, 8) + '...' + currentKey.key.slice(-4);
+                statusEl.innerHTML = `<span style="color: #22c55e;">✓ Set</span> (${currentKey.name}): ${maskedKey}`;
+            } else {
+                statusEl.innerHTML = '<span style="color: #ef4444;">✗ Not set</span>';
+            }
+        }
+        
+        // Form submission
+        document.getElementById('api-key-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const apiKeyInput = document.getElementById('api-key');
+            const apiKey = apiKeyInput.value.trim();
+            
+            if (!apiKey) {
+                showStatus('Please enter an API key.', true);
+                return;
+            }
+            
+            // Basic validation - TMDb API keys are typically 32 characters long
+            if (apiKey.length < 20) {
+                showStatus('API key appears to be too short. Please check your key.', true);
+                return;
+            }
+            
+            try {
+                setApiKey(apiKey);
+                showStatus('API key saved successfully!');
+                apiKeyInput.value = '';
+                updateCurrentKeyDisplay();
+            } catch (error) {
+                showStatus('Error saving API key. Please try again.', true);
+                console.error('Error saving API key:', error);
+            }
+        });
+        
+        // Clear button
+        document.getElementById('clear-btn').addEventListener('click', function() {
+            if (confirm('Are you sure you want to clear the stored API key?')) {
+                try {
+                    clearApiKey();
+                    showStatus('API key cleared successfully!');
+                    updateCurrentKeyDisplay();
+                } catch (error) {
+                    showStatus('Error clearing API key. Please try again.', true);
+                    console.error('Error clearing API key:', error);
+                }
+            }
+        });
+        
+        // Initialize display
+        updateCurrentKeyDisplay();
+    </script>
+</body>
+</html>
