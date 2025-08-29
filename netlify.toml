@@ -1,0 +1,20 @@
+# Netlify configuration for watchnow-media
+# This configuration is optimized for Vite builds
+
+[build]
+  # Build command for Vite projects
+  command = "npm run build"
+  
+  # Publish directory - Vite outputs to 'dist' by default
+  # If your project uses Create React App, change this to 'build'
+  publish = "dist"
+
+[build.environment]
+  # Set NODE_ENV to production for optimized builds
+  NODE_ENV = "production"
+
+# Optional: Redirect rules for single-page applications
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
