@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Set TMDb API Key</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;line-height:1.4;padding:24px;background:#f6f8fb;color:#0b1220}
+    .card{max-width:640px;margin:24px auto;padding:18px;border-radius:10px;background:#fff;box-shadow:0 6px 18px rgba(11,18,32,0.06)}
+    label{display:block;margin-bottom:8px;font-weight:600}
+    input[type="text"]{width:100%;padding:10px;border:1px solid #e2e6ef;border-radius:6px;margin-bottom:12px}
+    button{padding:10px 14px;border-radius:8px;border:0;background:#0b1220;color:#fff;cursor:pointer;margin-right:8px}
+    .muted{color:#525f7a;font-size:0.95rem}
+    .notice{background:#fff8e6;color:#6a4c00;padding:10px;border-radius:6px;margin-top:12px}
+    .small{font-size:0.9rem;color:#536077}
+  </style>
+</head>
+<body>
+  <main class="card" role="main">
+    <h1>Set TMDb API Key</h1>
+    <p class="muted">If you cannot set environment variables for your deployed site, save a TMDb API key in your browser so this app can talk to TMDb.</p>
+
+    <form id="keyForm" aria-label="Set TMDb API key">
+      <label for="apiKey">TMDb API Key</label>
+      <input id="apiKey" type="text" placeholder="Enter your TMDb API key" autocomplete="off" />
+      <div>
+        <button id="saveBtn" type="submit">Save key to browser</button>
+        <button id="clearBtn" type="button">Clear key</button>
+      </div>
+    </form>
+
+    <div id="status" class="small" aria-live="polite" style="margin-top:12px"></div>
+
+    <section style="margin-top:18px">
+      <h3>How it works</h3>
+      <p class="small">This page stores the key in localStorage (under VITE_TMDB_API_KEY, REACT_APP_TMDB_API_KEY and tmdb_api_key) so the site can read it at runtime. After saving, visit the main site and refresh the page. To remove the key, use the Clear button here.</p>
+      <div class="notice">Important: storing API keys in localStorage is convenient for demos and development, but not recommended for public/production secrets. Make sure you understand the risks.</div>
+    </section>
+  </main>
+
+  <script>
+    const keys = ['VITE_TMDB_API_KEY', 'REACT_APP_TMDB_API_KEY', 'tmdb_api_key']
+    const apiKeyInput = document.getElementById('apiKey')
+    const statusEl = document.getElementById('status')
+    const saveBtn = document.getElementById('saveBtn')
+    const clearBtn = document.getElementById('clearBtn')
+
+    function getSavedKey() {
+      for (const k of keys) {
+        const v = localStorage.getItem(k)
+        if (v) return v
+      }
+      return ''
+    }
+
+    function showStatus(msg, isError) {
+      statusEl.textContent = msg
+      statusEl.style.color = isError ? '#7a1616' : '#14532d'
+    }
+
+    // initialize
+    apiKeyInput.value = getSavedKey()
+
+    document.getElementById('keyForm').addEventListener('submit', (e) => {
+      e.preventDefault()
+      const value = apiKeyInput.value.trim()
+      if (!value) {
+        showStatus('Please enter a non-empty API key.', true)
+        return
+      }
+      // store under several keys for compatibility
+      keys.forEach(k => localStorage.setItem(k, value))
+      showStatus('Saved TMDb API key to browser storage. Refresh the site to pick it up.')
+    })
+
+    clearBtn.addEventListener('click', () => {
+      keys.forEach(k => localStorage.removeItem(k))
+      apiKeyInput.value = ''
+      showStatus('Cleared saved TMDb API key.')
+    })
+  </script>
+</body>
+</html>
